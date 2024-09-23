@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+import subprocess
+import glob
+import sys
+
+
+def eprint(*args):
+    """Print through print to sys.stderr"""
+    print(*args, file=sys.stderr)
+
+
+def matching_version(desired: str, gotten: str) -> bool:
+    """Check in many ways if gotten version is fit for desired version string"""
+    # exact match
+    if desired == gotten:
+        return True
+
+    # we asked for 3.x so let's try get 3.x.y for any y from 0 to 100
+    if any(f"{desired}.{x}" == gotten for x in range(100)):
+        return True
+
+    # we asked for 3x so let's try get 3.x.y for any y from 0 to 100
+    dotlessgotten = gotten.replace(".", "")
+    if any(f"{desired}{x}" == dotlessgotten for x in range(100)):
+        return True
+
+    return False
+
+
+def main():
+    """A main function to not run anything when imported as a module."""
+    # find all the python.exe exes in direct sub-subdirs of D:/anypython/
+    # TODO: make this directory come from env var or similar and take more exes than just -embed-win32
+    # TODO: sort properly so 3.x.0 comes before 3.x.9 and 3.x.9 before 3.x.10 and 3.x.11 and so on
+    exes = sorted(glob.glob("D:\\anypython\\python-*-embed-win32\\python.exe"))
+
+    # check args and print small help and all available versions if args are wrong
+    if len(sys.argv) < 2 or len(sys.argv[1]) < 2:
+        eprint("Pass version (2+ chars) and any extra arguments, available versions:")
+        for exe in exes:
+            eprint(exe.split("/")[-1].split("-")[1])
+        sys.exit(1)
+
+    # find the exes
+    found = []
+    for exe in exes:
+        exever = exe.split("/")[-1].split("-")[1]
+        if matching_version(sys.argv[1], exever):
+            found.append(exe)
+
+    # no exes, print all available versions
+    if len(found) == 0:
+        eprint("Found no matching exes, available versions:")
+        for exe in exes:
+            eprint(exe.split("/")[-1].split("-")[1])
+        sys.exit(1)
+
+    # more than one exe, print all found versions
+    if len(found) > 1:
+        eprint("Found more than one matching version:")
+        for exe in found:
+            eprint(exe.split("/")[-1].split("-")[1])
+        sys.exit(1)
+
+    # run the found python exe with the extra arguments and forward return the exit code
+    result = subprocess.run([found[0]] + sys.argv[2:], check=False)
+    sys.exit(result.returncode)
+
+
+if __name__ == "__main__":
+    main()
