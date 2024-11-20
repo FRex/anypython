@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import subprocess
+import hashlib
 import shlex
 import glob
 import sys
@@ -48,12 +49,19 @@ def main():
     # but print some extra banner before/after the runs
     if sys.argv[1] == "all":
         for exe in exes:
+            # print the command then run it
             args = [exe] + sys.argv[2:]
             print(shlex.join(args) + " # running")
-            result = subprocess.run(args, check=False)
-            print(
-                f"Return code = {result.returncode}\n"
-            )  # extra newline to space out the output
+            result = subprocess.run(args, check=False, stdout=subprocess.PIPE)
+
+            # dump to stdout as is, don't even decode/encode
+            sys.stdout.flush()
+            sys.stdout.buffer.write(result.stdout)
+            sys.stdout.flush()
+
+            # NOTE: extra newline at the end is to space out the output
+            h = hashlib.sha512(result.stdout).hexdigest()[:35]
+            print(f"Return code = {result.returncode} and hash of stdout = {h}\n")
         return
 
     # find the exes
