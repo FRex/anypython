@@ -47,6 +47,7 @@ def main():
 
     # run via each version we have and do not forward the return codes
     # but print some extra banner before/after the runs
+    outcomes = []
     if sys.argv[1] == "all":
         for exe in exes:
             # print the command then run it
@@ -62,6 +63,11 @@ def main():
             # NOTE: extra newline at the end is to space out the output
             h = hashlib.sha512(result.stdout).hexdigest()[:35]
             print(f"Return code = {result.returncode} and hash of stdout = {h}\n")
+            outcomes.append((exe, result.returncode, h))
+
+        for out in outcomes:
+            print(*out)
+
         return
 
     # find the exes
