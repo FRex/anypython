@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import subprocess
+import shlex
 import glob
 import sys
 
@@ -36,10 +37,24 @@ def main():
 
     # check args and print small help and all available versions if args are wrong
     if len(sys.argv) < 2 or len(sys.argv[1]) < 2:
-        eprint("Pass version (2+ chars) and any extra arguments, available versions:")
+        eprint(
+            "Pass version (2+ chars) or 'all' and any extra arguments, available versions:"
+        )
         for exe in exes:
             eprint(exe.split("/")[-1].split("-")[1])
         sys.exit(1)
+
+    # run via each version we have and do not forward the return codes
+    # but print some extra banner before/after the runs
+    if sys.argv[1] == "all":
+        for exe in exes:
+            args = [exe] + sys.argv[2:]
+            print(shlex.join(args) + " # running")
+            result = subprocess.run(args, check=False)
+            print(
+                f"Return code = {result.returncode}\n"
+            )  # extra newline to space out the output
+        return
 
     # find the exes
     found = []
