@@ -71,7 +71,7 @@ def run_all(exes: list, argv2):
     """Run all exes and show summary results of errors and stdout hashes."""
 
     rows = []
-    rows.append(("Executable", "Code", "Stdout Hash"))
+    rows.append(("Executable", "Version", "Code", "Stdout Hash"))
     rows.append(None)
 
     for exe in exes:
@@ -89,7 +89,7 @@ def run_all(exes: list, argv2):
         # NOTE: extra newline at the end is to space out the output
         h = hashlib.sha512(result.stdout).hexdigest()[:35]
         print(f"Return code = {result.returncode} and hash of stdout = {h}\n")
-        rows.append((exe, result.returncode, " " + h))
+        rows.append((exe, extract_exe_ver(exe), result.returncode, " " + h))
 
     print(format_pretty_table(rows, rjust=(1, 2)))
 
