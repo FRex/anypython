@@ -81,6 +81,7 @@ def run_all(exes: list, argv2):
         result = subprocess.run(args, check=False, stdout=subprocess.PIPE)
 
         # dump to stdout as is, don't even decode/encode
+        # TODO: check if those flushes are needed or not
         sys.stdout.flush()
         sys.stdout.buffer.write(result.stdout)
         sys.stdout.flush()
