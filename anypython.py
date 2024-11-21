@@ -29,12 +29,21 @@ def matching_version(desired: str, gotten: str) -> bool:
     return False
 
 
+def extract_exe_ver(exe: str) -> str:
+    # TODO: make this more robust, maybe using a regex?
+    return exe.split("/")[-1].split("-")[1]
+
+
+def extract_exe_ver_int_tuple(exe: str) -> str:
+    return tuple(map(int, extract_exe_ver(exe).split(".")))
+
+
 def main():
     """A main function to not run anything when imported as a module."""
     # find all the python.exe exes in direct sub-subdirs of D:/anypython/
     # TODO: make this directory come from env var or similar and take more exes than just -embed-win32
-    # TODO: sort properly so 3.x.0 comes before 3.x.9 and 3.x.9 before 3.x.10 and 3.x.11 and so on
-    exes = sorted(glob.glob("D:\\anypython\\python-*-embed-win32\\python.exe"))
+    exes = glob.glob("D:\\anypython\\python-*-embed-win32\\python.exe")
+    exes = sorted(exes, key=extract_exe_ver_int_tuple)
 
     # check args and print small help and all available versions if args are wrong
     if len(sys.argv) < 2 or len(sys.argv[1]) < 2:
@@ -73,7 +82,7 @@ def main():
     # find the exes
     found = []
     for exe in exes:
-        exever = exe.split("/")[-1].split("-")[1]
+        exever = extract_exe_ver(exe)
         if matching_version(sys.argv[1], exever):
             found.append(exe)
 
