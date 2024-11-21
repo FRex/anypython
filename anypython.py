@@ -41,6 +41,32 @@ def extract_exe_ver_int_tuple(exe: str) -> str:
     return tuple(map(int, extract_exe_ver(exe).split(".")))
 
 
+def format_pretty_table(origdata, rjust=()) -> str:
+    """Format a table using | to separate columns and - as a row separator."""
+    data = [None if row is None else tuple(map(str, row)) for row in origdata]
+    colcount = max(map(len, (row for row in data if row is not None)))
+    maxlens = colcount * [0]
+    for row in data:
+        if row is None:
+            continue
+        for i, l1 in enumerate(map(len, row)):
+            if l1 > maxlens[i]:
+                maxlens[i] = l1
+    ret = []
+    for row in data:
+        if row is None:
+            ret.append("|".join("-" * width for width in maxlens))
+        else:
+            parts = []
+            for i, (data, width) in enumerate(zip(row, maxlens)):
+                if i in rjust:
+                    parts.append(data.rjust(width))
+                else:
+                    parts.append(data.ljust(width))
+            ret.append("|".join(parts))
+    return "\n".join(ret)
+
+
 def main():
     """A main function to not run anything when imported as a module."""
     # find all the python.exe exes in direct sub-subdirs of D:/anypython/
@@ -59,7 +85,9 @@ def main():
 
     # run via each version we have and do not forward the return codes
     # but print some extra banner before/after the runs
-    outcomes = []
+    rows = []
+    rows.append(("Executable", "Code", "Stdout Hash"))
+    rows.append(None)
     if sys.argv[1] == "all":
         for exe in exes:
             # print the command then run it
@@ -75,11 +103,10 @@ def main():
             # NOTE: extra newline at the end is to space out the output
             h = hashlib.sha512(result.stdout).hexdigest()[:35]
             print(f"Return code = {result.returncode} and hash of stdout = {h}\n")
-            outcomes.append((exe, result.returncode, h))
+            rows.append((exe, result.returncode, " " + h))
 
-        for out in outcomes:
-            print(*out)
-
+        t = format_pretty_table(rows, rjust=(1, 2))
+        print(t)
         return
 
     # find the exes
