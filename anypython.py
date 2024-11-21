@@ -75,7 +75,7 @@ def run_all(exes: list, argv2):
     rows.append(None)
 
     for exe in exes:
-        # print the command then run it
+        # print the command then run it, entire shlex join line is copy pasteable
         args = [exe] + argv2
         print(shlex.join(args) + " # running")
         result = subprocess.run(args, check=False, stdout=subprocess.PIPE)
