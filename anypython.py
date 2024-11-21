@@ -67,6 +67,34 @@ def format_pretty_table(origdata, rjust=()) -> str:
     return "\n".join(ret)
 
 
+def run_all(exes: list, argv2):
+    """Run all exes and show summary results of errors and stdout hashes."""
+
+    rows = []
+    rows.append(("Executable", "Code", "Stdout Hash"))
+    rows.append(None)
+
+    for exe in exes:
+        # print the command then run it
+        args = [exe] + argv2
+        print(shlex.join(args) + " # running")
+        result = subprocess.run(args, check=False, stdout=subprocess.PIPE)
+
+        # dump to stdout as is, don't even decode/encode
+        sys.stdout.flush()
+        sys.stdout.buffer.write(result.stdout)
+        sys.stdout.flush()
+
+        # NOTE: extra newline at the end is to space out the output
+        h = hashlib.sha512(result.stdout).hexdigest()[:35]
+        print(f"Return code = {result.returncode} and hash of stdout = {h}\n")
+        rows.append((exe, result.returncode, " " + h))
+
+    t = format_pretty_table(rows, rjust=(1, 2))
+    print(t)
+    return
+
+
 def main():
     """A main function to not run anything when imported as a module."""
     # find all the python.exe exes in direct sub-subdirs of D:/anypython/
@@ -83,30 +111,8 @@ def main():
             eprint(exe.split("/")[-1].split("-")[1])
         sys.exit(1)
 
-    # run via each version we have and do not forward the return codes
-    # but print some extra banner before/after the runs
-    rows = []
-    rows.append(("Executable", "Code", "Stdout Hash"))
-    rows.append(None)
     if sys.argv[1] == "all":
-        for exe in exes:
-            # print the command then run it
-            args = [exe] + sys.argv[2:]
-            print(shlex.join(args) + " # running")
-            result = subprocess.run(args, check=False, stdout=subprocess.PIPE)
-
-            # dump to stdout as is, don't even decode/encode
-            sys.stdout.flush()
-            sys.stdout.buffer.write(result.stdout)
-            sys.stdout.flush()
-
-            # NOTE: extra newline at the end is to space out the output
-            h = hashlib.sha512(result.stdout).hexdigest()[:35]
-            print(f"Return code = {result.returncode} and hash of stdout = {h}\n")
-            rows.append((exe, result.returncode, " " + h))
-
-        t = format_pretty_table(rows, rjust=(1, 2))
-        print(t)
+        run_all(exes, sys.argv[2:])
         return
 
     # find the exes
