@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""A script to run another script through many versions of Python to check compatibility."""
 import subprocess
 import hashlib
 import shlex
@@ -30,11 +31,13 @@ def matching_version(desired: str, gotten: str) -> bool:
 
 
 def extract_exe_ver(exe: str) -> str:
+    """Extract version string from a file path."""
     # TODO: make this more robust, maybe using a regex?
     return exe.split("/")[-1].split("-")[1]
 
 
 def extract_exe_ver_int_tuple(exe: str) -> str:
+    """Extract version string from a file path and return it as a tuple of ints for sorting."""
     return tuple(map(int, extract_exe_ver(exe).split(".")))
 
 
