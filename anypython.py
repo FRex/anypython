@@ -91,9 +91,7 @@ def run_all(exes: list, argv2):
         print(f"Return code = {result.returncode} and hash of stdout = {h}\n")
         rows.append((exe, result.returncode, " " + h))
 
-    t = format_pretty_table(rows, rjust=(1, 2))
-    print(t)
-    return
+    print(format_pretty_table(rows, rjust=(1, 2)))
 
 
 def main():
