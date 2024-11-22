@@ -67,11 +67,27 @@ def format_pretty_table(origdata, rjust=()) -> str:
     return "\n".join(ret)
 
 
+# for each Python version note what Ubuntu xx.04 LTS it ships on
+VERSION_NOTES = {
+    (3, 6): "Ubuntu 18",
+    (3, 8): "Ubuntu 20",
+    (3, 10): "Ubuntu 22",
+    (3, 12): "Ubuntu 24",
+}
+
+
+def get_note_for_exe(exe: str) -> str:
+    """Get notes for a given python by its version, for example if it ships on Ubuntu LTS."""
+    ver = extract_exe_ver_int_tuple(exe)
+    ver = ver[:2]
+    return VERSION_NOTES.get(ver, "")
+
+
 def run_all(exes: list, argv2):
     """Run all exes and show summary results of errors and stdout hashes."""
 
     rows = []
-    rows.append(("Executable", "Version", "Code", "Stdout Hash"))
+    rows.append(("Executable", "Version", "Code", " Stdout Hash", " Note"))
     rows.append(None)
 
     for exe in exes:
@@ -89,8 +105,17 @@ def run_all(exes: list, argv2):
         # NOTE: extra newline at the end is to space out the output
         h = hashlib.sha512(result.stdout).hexdigest()[:35]
         print(f"Return code = {result.returncode} and hash of stdout = {h}\n")
-        rows.append((exe, extract_exe_ver(exe), result.returncode, " " + h))
+        rows.append(
+            (
+                exe,
+                extract_exe_ver(exe),
+                result.returncode,
+                " " + h,
+                get_note_for_exe(exe),
+            )
+        )
 
+    # TODO: sort by stdout hash or something? and show some summary row?
     print(format_pretty_table(rows, rjust=(1, 2)))
 
 
