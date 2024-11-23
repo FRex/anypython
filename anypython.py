@@ -69,6 +69,7 @@ def format_pretty_table(origdata, rjust=()) -> str:
 
 # for each Python version note what Ubuntu xx.04 LTS it ships on
 VERSION_NOTES = {
+    (3, 5): "no f-strings",
     (3, 6): "Ubuntu 18",
     (3, 8): "Ubuntu 20",
     (3, 10): "Ubuntu 22",
