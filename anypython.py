@@ -84,11 +84,22 @@ def get_note_for_exe(exe: str) -> str:
     return VERSION_NOTES.get(ver, "")
 
 
+SIGNIFICAN_HASH_CHARS = 35
+
+
 def run_all(exes: list, argv2):
     """Run all exes and show summary results of errors and stdout hashes."""
 
     rows = []
-    rows.append(("Executable", "Version", "Code", " Stdout Hash", " Note"))
+    rows.append(
+        (
+            "Executable",
+            "Version",
+            "Code",
+            f" Stdout Hash {SIGNIFICAN_HASH_CHARS} chars of SHA512",
+            " Note",
+        )
+    )
     rows.append(None)
 
     for exe in exes:
@@ -104,7 +115,7 @@ def run_all(exes: list, argv2):
         sys.stdout.flush()
 
         # NOTE: extra newline at the end is to space out the output
-        h = hashlib.sha512(result.stdout).hexdigest()[:35]
+        h = hashlib.sha512(result.stdout).hexdigest()[:SIGNIFICAN_HASH_CHARS]
         print(f"Return code = {result.returncode} and hash of stdout = {h}\n")
         rows.append(
             (
