@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """A script to run another script through many versions of Python to check compatibility."""
+import collections
 import subprocess
 import hashlib
 import shlex
@@ -69,11 +70,11 @@ def format_pretty_table(origdata, rjust=()) -> str:
 
 # for each Python version note what Ubuntu xx.04 LTS it ships on
 VERSION_NOTES = {
-    (3, 5): "no f-strings",
-    (3, 6): "Ubuntu 18",
-    (3, 8): "Ubuntu 20",
-    (3, 10): "Ubuntu 22",
-    (3, 12): "Ubuntu 24",
+    (3, 5): " no f-strings ",
+    (3, 6): " Ubuntu 18 ",
+    (3, 8): " Ubuntu 20 ",
+    (3, 10): " Ubuntu 22 ",
+    (3, 12): " Ubuntu 24 ",
 }
 
 
@@ -93,15 +94,17 @@ def run_all(exes: list, argv2):
     rows = []
     rows.append(
         (
-            "Executable",
-            "Version",
+            " Executable ",
+            " Version ",
             "Code",
-            f" Stdout Hash {SIGNIFICAN_HASH_CHARS} chars of SHA512",
+            f" Stdout Hash {SIGNIFICAN_HASH_CHARS} chars of SHA512 ",
             " Note",
+            " # ",
         )
     )
     rows.append(None)
 
+    counts = collections.defaultdict(int)
     for exe in exes:
         # print the command then run it, entire shlex join line is copy pasteable
         args = [exe] + argv2
@@ -118,17 +121,22 @@ def run_all(exes: list, argv2):
         h = hashlib.sha512(result.stdout).hexdigest()[:SIGNIFICAN_HASH_CHARS]
         print(f"Return code = {result.returncode} and hash of stdout = {h}\n")
         rows.append(
-            (
-                exe,
-                extract_exe_ver(exe),
-                result.returncode,
-                " " + h,
+            [
+                f" {exe} ",
+                extract_exe_ver(exe) + " ",
+                f"{result.returncode} ",
+                " " + h + " ",
                 get_note_for_exe(exe),
-            )
+                -1,
+            ]
         )
+        counts[rows[-1][-3]] += 1
+
+    for i in range(2, len(rows)):
+        rows[i][-1] = " " + str(counts[rows[i][-3]])
 
     # TODO: sort by stdout hash or something? and show some summary row?
-    print(format_pretty_table(rows, rjust=(1, 2)))
+    print(format_pretty_table(rows, rjust=(1, 2, 3)))
 
 
 def main():
